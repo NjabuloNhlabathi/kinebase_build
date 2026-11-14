@@ -1,6 +1,5 @@
 import cv2
 import time
-import joblib
 import serial
 import numpy as np
 import mediapipe as mp
@@ -13,8 +12,21 @@ BAUD_RATE = 115200
 MODEL_PATH = "hand_landmarker.task"
 ALPHA = 0.35
 
-policy = joblib.load("kinebase_policy.pkl")
-print("[OK] Loaded trained neural policy: kinebase_policy.pkl")
+# Load pure-NumPy neural policy weights
+weights = np.load("kinebase_policy.npz")
+mean, std = weights["mean"], weights["std"]
+W1, b1 = weights["W1"], weights["b1"]
+W2, b2 = weights["W2"], weights["b2"]
+W3, b3 = weights["W3"], weights["b3"]
+print("[OK] Loaded trained neural policy: kinebase_policy.npz")
+
+def predict_angle(pose_vec):
+    x = (np.array(pose_vec, dtype=np.float32).reshape(1, -1) - mean) / std
+    a1 = np.maximum(0, x @ W1 + b1)
+    a2 = np.maximum(0, a1 @ W2 + b2)
+    out = float((a2 @ W3 + b3)[0, 0]) * 180.0
+    out = float(np.nan_to_num(out, nan=90.0))
+    return float(np.clip(out, 0, 180))
 
 try:
     arduino = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.05)
@@ -53,13 +65,11 @@ while cap.isOpened():
         lms = res.hand_world_landmarks[0]
         wx, wy, wz = lms[0].x, lms[0].y, lms[0].z
 
-        # Normalize to wrist origin (must match build_dataset.py preprocessing)
         pose_vec = []
         for lm in lms:
             pose_vec.extend([lm.x - wx, lm.y - wy, lm.z - wz])
 
-        raw_pred = float(policy.predict([pose_vec])[0])
-        raw_pred = np.clip(raw_pred, 0, 180)
+        raw_pred = predict_angle(pose_vec)
         smoothed_angle = (ALPHA * raw_pred) + ((1 - ALPHA) * smoothed_angle)
         target_servo = int(round(smoothed_angle))
 
