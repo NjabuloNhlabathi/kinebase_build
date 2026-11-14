@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KineBase | LKM Harvester Console</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>KineBase Harvester Console</h1>
+      <p class="subtitle">TRL 5 Edge Kinematic Data Pipeline</p>
+    </header>
+
+    <section class="card">
+      <h2>1. Episode Configuration</h2>
+      <form action="/control" method="POST">
+        <label for="task_name">Movement / Task Label:</label>
+        <input type="text" id="task_name" name="task_name" value="precision_pinch" required>
+
+        <div class="button-row">
+          <button type="submit" name="action" value="start" class="btn btn-record">Start Harvesting</button>
+          <button type="submit" name="action" value="stop" class="btn btn-stop">Stop & Save JSON</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>2. Hardware Node Status</h2>
+      <table>
+        <tr>
+          <th>Node</th>
+          <th>Hardware</th>
+          <th>Role</th>
+          <th>Status</th>
+        </tr>
+        <tr>
+          <td>Vision Host</td>
+          <td>Acer Aspire 3 (MediaPipe)</td>
+          <td>3D Joint Extraction</td>
+          <td><span class="badge active">Online</span></td>
+        </tr>
+        <tr>
+          <td>Actuator Node</td>
+          <td>ESP32 + FS90 Servo</td>
+          <td>Physical Validation</td>
+          <td><span class="badge active">Serial Ready</span></td>
+        </tr>
+        <tr>
+          <td>Trigger Pod</td>
+          <td>Arduino Uno + Button</td>
+          <td>Hands-Free Pedal</td>
+          <td><span class="badge standby">Optional</span></td>
+        </tr>
+      </table>
+    </section>
+  </div>
+</body>
+</html>
